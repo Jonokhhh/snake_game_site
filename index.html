@@ -1,0 +1,814 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Змейка - Классическая игра</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            color: #fff;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 20px;
+            width: 100%;
+            max-width: 800px;
+        }
+        
+        h1 {
+            font-size: 2.8rem;
+            margin-bottom: 10px;
+            background: linear-gradient(90deg, #00b894, #00cec9);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            text-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
+        }
+        
+        .subtitle {
+            color: #81ecec;
+            font-size: 1.2rem;
+            margin-bottom: 25px;
+        }
+        
+        .game-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 25px;
+            max-width: 800px;
+            width: 100%;
+        }
+        
+        .stats-container {
+            display: flex;
+            justify-content: space-between;
+            width: 100%;
+            background: rgba(0, 0, 0, 0.3);
+            padding: 15px 25px;
+            border-radius: 12px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+        }
+        
+        .stat {
+            text-align: center;
+        }
+        
+        .stat-value {
+            font-size: 2.2rem;
+            font-weight: bold;
+            color: #00b894;
+        }
+        
+        .stat-label {
+            font-size: 1rem;
+            color: #81ecec;
+            margin-top: 5px;
+        }
+        
+        .game-wrapper {
+            position: relative;
+            width: 100%;
+        }
+        
+        #game-canvas {
+            display: block;
+            margin: 0 auto;
+            background-color: #0c2461;
+            border-radius: 8px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+            border: 3px solid #00cec9;
+        }
+        
+        .controls {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 20px;
+            width: 100%;
+        }
+        
+        .buttons {
+            display: flex;
+            gap: 20px;
+        }
+        
+        button {
+            background: linear-gradient(to bottom, #00b894, #00a085);
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            font-size: 1.1rem;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: bold;
+            box-shadow: 0 4px 0 #008b74;
+        }
+        
+        button:hover {
+            background: linear-gradient(to bottom, #00cec9, #00b894);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 0 #008b74;
+        }
+        
+        button:active {
+            transform: translateY(2px);
+            box-shadow: 0 2px 0 #008b74;
+        }
+        
+        .game-over {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.85);
+            display: none;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            border-radius: 8px;
+            z-index: 10;
+        }
+        
+        .game-over h2 {
+            font-size: 3.5rem;
+            color: #ff7675;
+            margin-bottom: 20px;
+            text-shadow: 0 0 10px rgba(255, 118, 117, 0.7);
+        }
+        
+        .game-over p {
+            font-size: 1.5rem;
+            margin-bottom: 30px;
+            color: #81ecec;
+        }
+        
+        .instructions {
+            background: rgba(0, 0, 0, 0.3);
+            padding: 20px;
+            border-radius: 12px;
+            width: 100%;
+            margin-top: 10px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+        }
+        
+        .instructions h3 {
+            color: #00cec9;
+            margin-bottom: 15px;
+            text-align: center;
+            font-size: 1.4rem;
+        }
+        
+        .instruction-row {
+            display: flex;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+        
+        .instruction-item {
+            flex: 1;
+            min-width: 200px;
+            background: rgba(255, 255, 255, 0.05);
+            padding: 15px;
+            border-radius: 8px;
+            border-left: 4px solid #00b894;
+        }
+        
+        .instruction-item h4 {
+            color: #81ecec;
+            margin-bottom: 8px;
+        }
+        
+        .key {
+            display: inline-block;
+            background: rgba(0, 0, 0, 0.5);
+            padding: 5px 10px;
+            border-radius: 5px;
+            font-family: monospace;
+            font-weight: bold;
+            color: #00b894;
+            border: 1px solid #00b894;
+            margin: 2px;
+        }
+        
+        .difficulty {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+            margin-top: 10px;
+        }
+        
+        .difficulty label {
+            font-size: 1.1rem;
+            color: #81ecec;
+        }
+        
+        select {
+            background: rgba(0, 0, 0, 0.5);
+            color: white;
+            border: 2px solid #00b894;
+            padding: 8px 15px;
+            border-radius: 6px;
+            font-size: 1rem;
+        }
+        
+        footer {
+            margin-top: 30px;
+            text-align: center;
+            color: #81ecec;
+            font-size: 0.9rem;
+            opacity: 0.8;
+        }
+        
+        @media (max-width: 850px) {
+            #game-canvas {
+                width: 95vw;
+                height: 95vw;
+                max-width: 600px;
+                max-height: 600px;
+            }
+            
+            .stats-container {
+                flex-direction: column;
+                gap: 15px;
+            }
+            
+            h1 {
+                font-size: 2.2rem;
+            }
+        }
+        
+        @media (max-width: 500px) {
+            .buttons {
+                flex-direction: column;
+                width: 100%;
+            }
+            
+            button {
+                width: 100%;
+            }
+            
+            .instruction-row {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>КЛАССИЧЕСКАЯ ЗМЕЙКА</h1>
+        <p class="subtitle">Собери как можно больше еды и стань самой длинной змейкой!</p>
+    </div>
+    
+    <div class="game-container">
+        <div class="stats-container">
+            <div class="stat">
+                <div class="stat-value" id="score">0</div>
+                <div class="stat-label">СЧЕТ</div>
+            </div>
+            <div class="stat">
+                <div class="stat-value" id="length">3</div>
+                <div class="stat-label">ДЛИНА</div>
+            </div>
+            <div class="stat">
+                <div class="stat-value" id="high-score">0</div>
+                <div class="stat-label">РЕКОРД</div>
+            </div>
+        </div>
+        
+        <div class="game-wrapper">
+            <canvas id="game-canvas" width="600" height="600"></canvas>
+            <div class="game-over" id="game-over">
+                <h2>ИГРА ОКОНЧЕНА</h2>
+                <p id="final-score">Ваш счет: 0</p>
+                <button id="restart-btn">ИГРАТЬ СНОВА</button>
+            </div>
+        </div>
+        
+        <div class="controls">
+            <div class="buttons">
+                <button id="start-btn">СТАРТ</button>
+                <button id="pause-btn">ПАУЗА</button>
+                <button id="reset-btn">СБРОС</button>
+            </div>
+            
+            <div class="difficulty">
+                <label for="speed-select">Скорость:</label>
+                <select id="speed-select">
+                    <option value="8">Медленно</option>
+                    <option value="12" selected>Средне</option>
+                    <option value="18">Быстро</option>
+                    <option value="25">Очень быстро</option>
+                </select>
+            </div>
+        </div>
+        
+        <div class="instructions">
+            <h3>УПРАВЛЕНИЕ</h3>
+            <div class="instruction-row">
+                <div class="instruction-item">
+                    <h4>КЛАВИАТУРА</h4>
+                    <p>Используйте <span class="key">←</span> <span class="key">↑</span> <span class="key">→</span> <span class="key">↓</span> или <span class="key">W</span> <span class="key">A</span> <span class="key">S</span> <span class="key">D</span> для управления змейкой</p>
+                </div>
+                <div class="instruction-item">
+                    <h4>ЦЕЛЬ ИГРЫ</h4>
+                    <p>Собирайте красную еду, чтобы расти и увеличивать счет. Избегайте столкновений с собой!</p>
+                </div>
+                <div class="instruction-item">
+                    <h4>ПРОХОЖДЕНИЕ СТЕН</h4>
+                    <p>Змейка проходит через стены и появляется с противоположной стороны</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <footer>
+        <p>Змейка — классическая игра. Создано с использованием HTML5, CSS3 и JavaScript</p>
+    </footer>
+
+    <script>
+        // Инициализация элементов
+        const canvas = document.getElementById('game-canvas');
+        const ctx = canvas.getContext('2d');
+        const scoreElement = document.getElementById('score');
+        const lengthElement = document.getElementById('length');
+        const highScoreElement = document.getElementById('high-score');
+        const finalScoreElement = document.getElementById('final-score');
+        const gameOverScreen = document.getElementById('game-over');
+        const startBtn = document.getElementById('start-btn');
+        const pauseBtn = document.getElementById('pause-btn');
+        const resetBtn = document.getElementById('reset-btn');
+        const restartBtn = document.getElementById('restart-btn');
+        const speedSelect = document.getElementById('speed-select');
+        
+        // Константы игры
+        const GRID_SIZE = 20;
+        const GRID_WIDTH = canvas.width / GRID_SIZE;
+        const GRID_HEIGHT = canvas.height / GRID_SIZE;
+        
+        // Состояние игры
+        let snake = [];
+        let food = {};
+        let direction = 'right';
+        let nextDirection = 'right';
+        let gameSpeed = 12; // FPS
+        let score = 0;
+        let length = 3;
+        let highScore = localStorage.getItem('snakeHighScore') || 0;
+        let gameRunning = false;
+        let gameLoop;
+        
+        // Инициализация высокого счета
+        highScoreElement.textContent = highScore;
+        
+        // Направления
+        const directions = {
+            'up': { x: 0, y: -1 },
+            'down': { x: 0, y: 1 },
+            'left': { x: -1, y: 0 },
+            'right': { x: 1, y: 0 }
+        };
+        
+        // Противоположные направления (для предотвращения разворота на 180 градусов)
+        const oppositeDirections = {
+            'up': 'down',
+            'down': 'up',
+            'left': 'right',
+            'right': 'left'
+        };
+        
+        // Инициализация игры
+        function initGame() {
+            // Создание змейки
+            snake = [];
+            for (let i = 2; i >= 0; i--) {
+                snake.push({ x: 5 + i, y: 10 });
+            }
+            
+            // Создание еды
+            createFood();
+            
+            // Сброс направления
+            direction = 'right';
+            nextDirection = 'right';
+            
+            // Сброс счета и длины
+            score = 0;
+            length = 3;
+            scoreElement.textContent = score;
+            lengthElement.textContent = length;
+            
+            // Отрисовка начального состояния
+            draw();
+        }
+        
+        // Создание еды
+        function createFood() {
+            // Генерация случайной позиции
+            let newFood;
+            let foodOnSnake;
+            
+            do {
+                foodOnSnake = false;
+                newFood = {
+                    x: Math.floor(Math.random() * GRID_WIDTH),
+                    y: Math.floor(Math.random() * GRID_HEIGHT)
+                };
+                
+                // Проверка, не находится ли еда на змейке
+                for (let segment of snake) {
+                    if (segment.x === newFood.x && segment.y === newFood.y) {
+                        foodOnSnake = true;
+                        break;
+                    }
+                }
+            } while (foodOnSnake);
+            
+            food = newFood;
+        }
+        
+        // Отрисовка игры
+        function draw() {
+            // Очистка холста
+            ctx.fillStyle = '#0c2461';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            
+            // Отрисовка сетки
+            drawGrid();
+            
+            // Отрисовка змейки
+            for (let i = 0; i < snake.length; i++) {
+                const segment = snake[i];
+                
+                // Голова змейки
+                if (i === 0) {
+                    ctx.fillStyle = '#00b894';
+                    ctx.fillRect(
+                        segment.x * GRID_SIZE, 
+                        segment.y * GRID_SIZE, 
+                        GRID_SIZE, 
+                        GRID_SIZE
+                    );
+                    
+                    // Глаза змейки
+                    ctx.fillStyle = '#000';
+                    let eyeOffsetX = 0, eyeOffsetY = 0;
+                    
+                    if (direction === 'right') {
+                        eyeOffsetX = GRID_SIZE - 5;
+                        eyeOffsetY = 5;
+                        ctx.fillRect(segment.x * GRID_SIZE + eyeOffsetX, segment.y * GRID_SIZE + eyeOffsetY, 3, 3);
+                        ctx.fillRect(segment.x * GRID_SIZE + eyeOffsetX, segment.y * GRID_SIZE + GRID_SIZE - 8, 3, 3);
+                    } else if (direction === 'left') {
+                        eyeOffsetX = 2;
+                        eyeOffsetY = 5;
+                        ctx.fillRect(segment.x * GRID_SIZE + eyeOffsetX, segment.y * GRID_SIZE + eyeOffsetY, 3, 3);
+                        ctx.fillRect(segment.x * GRID_SIZE + eyeOffsetX, segment.y * GRID_SIZE + GRID_SIZE - 8, 3, 3);
+                    } else if (direction === 'up') {
+                        eyeOffsetX = 5;
+                        eyeOffsetY = 2;
+                        ctx.fillRect(segment.x * GRID_SIZE + eyeOffsetX, segment.y * GRID_SIZE + eyeOffsetY, 3, 3);
+                        ctx.fillRect(segment.x * GRID_SIZE + GRID_SIZE - 8, segment.y * GRID_SIZE + eyeOffsetY, 3, 3);
+                    } else if (direction === 'down') {
+                        eyeOffsetX = 5;
+                        eyeOffsetY = GRID_SIZE - 5;
+                        ctx.fillRect(segment.x * GRID_SIZE + eyeOffsetX, segment.y * GRID_SIZE + eyeOffsetY, 3, 3);
+                        ctx.fillRect(segment.x * GRID_SIZE + GRID_SIZE - 8, segment.y * GRID_SIZE + eyeOffsetY, 3, 3);
+                    }
+                } 
+                // Тело змейки
+                else {
+                    // Градиент для тела змейки
+                    const colorValue = Math.max(50, 200 - i * 5);
+                    ctx.fillStyle = `rgb(0, ${colorValue}, ${Math.min(200, 100 + i * 3)})`;
+                    ctx.fillRect(
+                        segment.x * GRID_SIZE, 
+                        segment.y * GRID_SIZE, 
+                        GRID_SIZE, 
+                        GRID_SIZE
+                    );
+                }
+                
+                // Контур для сегментов
+                ctx.strokeStyle = '#000';
+                ctx.lineWidth = 1;
+                ctx.strokeRect(
+                    segment.x * GRID_SIZE, 
+                    segment.y * GRID_SIZE, 
+                    GRID_SIZE, 
+                    GRID_SIZE
+                );
+            }
+            
+            // Отрисовка еды (яблоко)
+            drawFood();
+        }
+        
+        // Отрисовка сетки
+        function drawGrid() {
+            ctx.strokeStyle = 'rgba(255, 255, 255, 0.05)';
+            ctx.lineWidth = 1;
+            
+            // Вертикальные линии
+            for (let x = 0; x <= canvas.width; x += GRID_SIZE) {
+                ctx.beginPath();
+                ctx.moveTo(x, 0);
+                ctx.lineTo(x, canvas.height);
+                ctx.stroke();
+            }
+            
+            // Горизонтальные линии
+            for (let y = 0; y <= canvas.height; y += GRID_SIZE) {
+                ctx.beginPath();
+                ctx.moveTo(0, y);
+                ctx.lineTo(canvas.width, y);
+                ctx.stroke();
+            }
+        }
+        
+        // Отрисовка еды (яблоко)
+        function drawFood() {
+            // Основная часть яблока
+            ctx.fillStyle = '#ff3838';
+            ctx.beginPath();
+            const centerX = food.x * GRID_SIZE + GRID_SIZE / 2;
+            const centerY = food.y * GRID_SIZE + GRID_SIZE / 2;
+            const radius = GRID_SIZE / 2 - 2;
+            ctx.arc(centerX, centerY, radius, 0, Math.PI * 2);
+            ctx.fill();
+            
+            // Блик на яблоке
+            ctx.fillStyle = 'rgba(255, 255, 255, 0.3)';
+            ctx.beginPath();
+            ctx.arc(centerX - radius/3, centerY - radius/3, radius/4, 0, Math.PI * 2);
+            ctx.fill();
+            
+            // Черенок яблока
+            ctx.fillStyle = '#8B4513';
+            ctx.fillRect(centerX - 1, food.y * GRID_SIZE, 3, 5);
+            
+            // Листик
+            ctx.fillStyle = '#2ecc71';
+            ctx.beginPath();
+            ctx.ellipse(centerX + 3, food.y * GRID_SIZE + 2, 4, 2, Math.PI/4, 0, Math.PI * 2);
+            ctx.fill();
+        }
+        
+        // Обновление состояния игры
+        function update() {
+            // Обновление направления
+            direction = nextDirection;
+            
+            // Получение головы змейки
+            const head = { ...snake[0] };
+            
+            // Перемещение головы в новом направлении
+            head.x += directions[direction].x;
+            head.y += directions[direction].y;
+            
+            // Проверка на прохождение через стены
+            if (head.x < 0) head.x = GRID_WIDTH - 1;
+            if (head.x >= GRID_WIDTH) head.x = 0;
+            if (head.y < 0) head.y = GRID_HEIGHT - 1;
+            if (head.y >= GRID_HEIGHT) head.y = 0;
+            
+            // Проверка на столкновение с собой
+            for (let segment of snake) {
+                if (segment.x === head.x && segment.y === head.y) {
+                    gameOver();
+                    return;
+                }
+            }
+            
+            // Добавление новой головы
+            snake.unshift(head);
+            
+            // Проверка на съедение еды
+            if (head.x === food.x && head.y === food.y) {
+                // Увеличение счета и длины
+                score += 10;
+                length++;
+                
+                // Обновление отображения счета и длины
+                scoreElement.textContent = score;
+                lengthElement.textContent = length;
+                
+                // Создание новой еды
+                createFood();
+                
+                // Увеличение скорости при достижении определенных очков
+                if (score % 50 === 0 && gameSpeed < 25) {
+                    gameSpeed += 1;
+                }
+            } else {
+                // Если еда не съедена, удаляем хвост
+                snake.pop();
+            }
+            
+            // Отрисовка обновленного состояния
+            draw();
+        }
+        
+        // Завершение игры
+        function gameOver() {
+            gameRunning = false;
+            clearInterval(gameLoop);
+            
+            // Обновление рекорда
+            if (score > highScore) {
+                highScore = score;
+                localStorage.setItem('snakeHighScore', highScore);
+                highScoreElement.textContent = highScore;
+            }
+            
+            // Показ экрана завершения игры
+            finalScoreElement.textContent = `Ваш счет: ${score}`;
+            gameOverScreen.style.display = 'flex';
+        }
+        
+        // Запуск игры
+        function startGame() {
+            if (gameRunning) return;
+            
+            gameRunning = true;
+            gameOverScreen.style.display = 'none';
+            
+            // Запуск игрового цикла
+            clearInterval(gameLoop);
+            gameLoop = setInterval(update, 1000 / gameSpeed);
+        }
+        
+        // Пауза игры
+        function pauseGame() {
+            if (!gameRunning) return;
+            
+            gameRunning = false;
+            clearInterval(gameLoop);
+            
+            // Отображение текста паузы
+            ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            
+            ctx.fillStyle = '#fff';
+            ctx.font = 'bold 40px Arial';
+            ctx.textAlign = 'center';
+            ctx.fillText('ПАУЗА', canvas.width / 2, canvas.height / 2);
+            
+            ctx.font = '20px Arial';
+            ctx.fillText('Нажмите СТАРТ для продолжения', canvas.width / 2, canvas.height / 2 + 40);
+        }
+        
+        // Сброс игры
+        function resetGame() {
+            gameRunning = false;
+            clearInterval(gameLoop);
+            gameOverScreen.style.display = 'none';
+            initGame();
+        }
+        
+        // Обработка нажатий клавиш
+        function handleKeyDown(e) {
+            switch (e.key) {
+                case 'ArrowUp':
+                case 'w':
+                case 'W':
+                case 'ц':
+                case 'Ц':
+                    if (direction !== 'down') nextDirection = 'up';
+                    e.preventDefault();
+                    break;
+                    
+                case 'ArrowDown':
+                case 's':
+                case 'S':
+                case 'ы':
+                case 'Ы':
+                    if (direction !== 'up') nextDirection = 'down';
+                    e.preventDefault();
+                    break;
+                    
+                case 'ArrowLeft':
+                case 'a':
+                case 'A':
+                case 'ф':
+                case 'Ф':
+                    if (direction !== 'right') nextDirection = 'left';
+                    e.preventDefault();
+                    break;
+                    
+                case 'ArrowRight':
+                case 'd':
+                case 'D':
+                case 'в':
+                case 'В':
+                    if (direction !== 'left') nextDirection = 'right';
+                    e.preventDefault();
+                    break;
+                    
+                case ' ':
+                    if (gameRunning) {
+                        pauseGame();
+                    } else {
+                        startGame();
+                    }
+                    e.preventDefault();
+                    break;
+            }
+        }
+        
+        // Изменение скорости игры
+        function changeSpeed() {
+            gameSpeed = parseInt(speedSelect.value);
+            
+            if (gameRunning) {
+                clearInterval(gameLoop);
+                gameLoop = setInterval(update, 1000 / gameSpeed);
+            }
+        }
+        
+        // Инициализация событий
+        function initEvents() {
+            // Управление клавиатурой
+            document.addEventListener('keydown', handleKeyDown);
+            
+            // Управление кнопками
+            startBtn.addEventListener('click', startGame);
+            pauseBtn.addEventListener('click', pauseGame);
+            resetBtn.addEventListener('click', resetGame);
+            restartBtn.addEventListener('click', resetGame);
+            
+            // Управление скоростью
+            speedSelect.addEventListener('change', changeSpeed);
+            
+            // Сенсорное управление для мобильных устройств
+            let touchStartX = 0;
+            let touchStartY = 0;
+            
+            canvas.addEventListener('touchstart', function(e) {
+                touchStartX = e.touches[0].clientX;
+                touchStartY = e.touches[0].clientY;
+                e.preventDefault();
+            }, { passive: false });
+            
+            canvas.addEventListener('touchmove', function(e) {
+                e.preventDefault();
+            }, { passive: false });
+            
+            canvas.addEventListener('touchend', function(e) {
+                const touchEndX = e.changedTouches[0].clientX;
+                const touchEndY = e.changedTouches[0].clientY;
+                
+                const diffX = touchEndX - touchStartX;
+                const diffY = touchEndY - touchStartY;
+                
+                // Определение направления свайпа
+                if (Math.abs(diffX) > Math.abs(diffY)) {
+                    // Горизонтальный свайп
+                    if (diffX > 0 && direction !== 'left') {
+                        nextDirection = 'right';
+                    } else if (diffX < 0 && direction !== 'right') {
+                        nextDirection = 'left';
+                    }
+                } else {
+                    // Вертикальный свайп
+                    if (diffY > 0 && direction !== 'up') {
+                        nextDirection = 'down';
+                    } else if (diffY < 0 && direction !== 'down') {
+                        nextDirection = 'up';
+                    }
+                }
+                
+                // Запуск игры при первом касании, если игра не запущена
+                if (!gameRunning) {
+                    startGame();
+                }
+                
+                e.preventDefault();
+            }, { passive: false });
+        }
+        
+        // Инициализация при загрузке страницы
+        window.onload = function() {
+            initGame();
+            initEvents();
+        };
+    </script>
+</body>
+</html>
